@@ -14,7 +14,7 @@ for filename in os.listdir(os.getcwd() + piscine):
 		try:
 			user = json.load(data)
 			for project in user['projects_users']:
-				if project['project']['id'] == 78 and project['final_mark'] >= 118 and project['id'] > 250000:
+				if project['project']['id'] == 58 and project['final_mark'] >= 90:
 					print user['login'] + "  -  " + str(project['final_mark']) + "  -  " + str(project['id'])
 		except:
 			print filename + "------------------------ fail -------------------------"

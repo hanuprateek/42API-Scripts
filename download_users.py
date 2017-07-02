@@ -18,8 +18,8 @@ r.raise_for_status()
 access_token = r.text[17:81]
 print access_token
 
-piscine = "October"
-year = "2016"
+piscine = "January"
+year = "2017"
 
 url = 'https://api.intra.42.fr/v2/campus/7/users?access_token=%s&filter[pool_month]=%s&filter[pool_year]=%s' % (access_token, piscine.lower(), year)
 peoples = []

@@ -7,6 +7,7 @@ import json
 import os
 import datetime
 from threading import Thread
+from Queue import Queue
 
 from secrets import secret, uid
 
@@ -37,25 +38,33 @@ while True:
 if not os.path.exists("Paris/"):
 	os.makedirs("Paris/")
 
-def create_file(user, count, total):
-	if os.path.exists("Paris/" + user["login"]):
-		st = os.stat("Paris/" + user["login"])
-		mtime = datetime.datetime.fromtimestamp(st.st_mtime)
-	else:
-		mtime = yesterday
-	if mtime <= yesterday:
-		response = urllib2.urlopen(user["url"] + "?access_token=" + access_token)
-		data = json.loads(response.read())
-		with open("Paris/" + data["login"], 'w') as f:
-			json.dump(data, f)
-		print "Added Profile", count, "of", total, user["login"]
+def create_file(q, count, total):
+	while True:
+		user = q.get()
+		if os.path.exists("Paris/" + user["login"]):
+			st = os.stat("Paris/" + user["login"])
+			mtime = datetime.datetime.fromtimestamp(st.st_mtime)
+		else:
+			mtime = yesterday
+		if mtime <= yesterday:
+			response = urllib2.urlopen(user["url"] + "?access_token=" + access_token)
+			data = json.loads(response.read())
+			with open("Paris/" + data["login"], 'w') as f:
+				json.dump(data, f)
+			print "Added Profile", count, "of", total, user["login"]
+		q.task_done()
+
+q = Queue(maxsize=0)
+num_threads = 100
 
 threads = []
-for user in profiles:
+for i in range(num_threads):
 	count += 1
-	process = Thread(target=create_file, args=[user, count, len(profiles)])
+	process = Thread(target=create_file, args=[q, count, len(profiles)])
+	process.setDaemon(True)
 	process.start()
-	threads.append(process)
 
-for process in threads:
-    process.join()
+for user in profiles:
+	q.put(user)
+
+q.join()
